@@ -1,0 +1,698 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "211af792-2260-4dc4-b9f9-fac530145cfa",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -592,
+        -464
+      ],
+      "id": "21d59129-054e-40c1-b5c4-839b8d7640ac",
+      "name": "Webhook",
+      "webhookId": "211af792-2260-4dc4-b9f9-fac530145cfa"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an intelligent hospital assistant AI for New Mowasat Hospital.\n\nYou handle three main tasks:\n1. **General Chat** — answer user questions about hospital services, departments, timings, etc.  \n2. **Doctor Availability Lookup** — when a user asks about a specific doctor’s available days or timings, respond with that info (from the connected Google Sheet “Doctors schedule”).  \n3. **Appointment Booking** — when the user provides enough details (doctor name, date, time, and contact info), create a structured booking request.\n\n---\n\n### Your output must ALWAYS be in valid JSON, following this exact schema:\n\n{\n  \"type\": \"chat\" | \"doctor_lookup\" | \"booking_request\",\n  \"message\": \"A short, natural, polite text response to the user\",\n  \"data\": {\n    \"Doctor Name\": \"\",\n    \"Date\": \"\",\n    \"Time\": \"\",\n    \"Patient Name\": \"\",\n    \"Email\": \"\",\n    \"Phone\": \"\",\n    \"Status\": \"\"\n  }\n}\n\n---\n\n### Instructions:\n\n- **For general chat:**  \n  - Set `\"type\": \"chat\"`  \n  - Keep `\"data\": {}` empty  \n  - Example:  \n    ```json\n    {\n      \"type\": \"chat\",\n      \"message\": \"Welcome to New Mowasat Hospital! How may I help you today?\",\n      \"data\": {}\n    }\n    ```\n\n- **For doctor availability lookup:**  \n  - Set `\"type\": \"doctor_lookup\"`  \n  - Include `\"Doctor Name\"` and `\"Date\"` (if available)  \n  - Example:  \n    ```json\n    {\n      \"type\": \"doctor_lookup\",\n      \"message\": \"Dr. Ayesha Khan is available on Monday and Wednesday between 10 AM and 2 PM.\",\n      \"data\": {\n        \"Doctor Name\": \"Dr. Ayesha Khan\",\n        \"Date\": \"Monday\",\n        \"Time\": \"10 AM - 2 PM\"\n      }\n    }\n    ```\n\n- **For appointment booking:**  \n  - Set `\"type\": \"booking_request\"`  \n  - Fill all fields in `\"data\"` that the user has provided.  \n  - Example:  \n    ```json\n    {\n      \"type\": \"booking_request\",\n      \"message\": \"I’ve prepared your booking with Dr. Ayesha Khan for next Monday at 11:00 AM.\",\n      \"data\": {\n        \"Doctor Name\": \"Dr. Ayesha Khan\",\n        \"Date\": \"Next Monday\",\n        \"Time\": \"11:00 AM\",\n        \"Patient Name\": \"Madeeha Tassadaq\",\n        \"Email\": \"madeeha50@yahoo.com\",\n        \"Phone\": \"03264897218\",\n        \"Status\": \"Pending\"\n      }\n    }\n    ```\n\n---\n\n### Behavior rules:\n\n- If the user says something like “book my appointment with her,” treat it as **chat intent** and continue the conversation to collect missing information (doctor name, date, time, contact info).\n- Remember previously provided details — **don’t ask the same question repeatedly**.\n- Once all booking information is collected, respond with a thank-you message like:  \n  `\"Thank you! You’ll receive a confirmation message shortly.\"`\n- **Be concise, polite, and professional.**\n- **Always output only valid JSON. No text or commentary outside the JSON block.**\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        -320
+      ],
+      "id": "475ac42b-c9f7-4fcb-8a5d-07b4dd9b8ead",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "=Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        480,
+        -128
+      ],
+      "id": "f6a83c03-e5f8-480f-8081-e050de07c4af",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get row(s) in sheet in Google Sheets to get the information about the doctors availability ,days and timings and their departments.",
+        "documentId": {
+          "__rl": true,
+          "value": "1rb19W81hbvwamgmkK04Z3hNE4gpLrU6wAEgunTAJWhg",
+          "mode": "list",
+          "cachedResultName": "fictional_doctors_pakistan",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rb19W81hbvwamgmkK04Z3hNE4gpLrU6wAEgunTAJWhg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1906443011,
+          "mode": "list",
+          "cachedResultName": "fictional_doctors_pakistan",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rb19W81hbvwamgmkK04Z3hNE4gpLrU6wAEgunTAJWhg/edit#gid=1906443011"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -160,
+        -96
+      ],
+      "id": "4fb0af5b-a025-4943-b21e-1880b51f6b29",
+      "name": "Doctors schedule",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "o9bLisloVTLzcdf1",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"type\": {\n      \"type\": \"string\",\n      \"enum\": [\"chat\", \"doctor_lookup\", \"booking_request\"]\n    },\n    \"message\": {\n      \"type\": \"string\"\n    },\n    \"data\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"Doctor Name\": { \"type\": \"string\" },\n        \"Date\": { \"type\": \"string\" },\n        \"Time\": { \"type\": \"string\" },\n        \"Patient Name\": { \"type\": \"string\" },\n        \"Email\": { \"type\": \"string\" },\n        \"Phone\": { \"type\": \"string\" },\n        \"Status\": { \"type\": \"string\" }\n      },\n      \"required\": []\n    }\n  },\n  \"required\": [\"type\", \"message\", \"data\"]\n}\n",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        -96
+      ],
+      "id": "1f1f4504-eb8e-4c38-b64a-6ad2bd539bde",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Append row in sheet in Google Sheets about the appointment details of the patient Name,Doctor Name,Date,Time,Email,phone,whether booked or pending",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wl1Oi2osgZTLDZCRCDJrqNuQHSfMcYQ2ehlZMFwqt8w",
+          "mode": "list",
+          "cachedResultName": "Patient Booking Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wl1Oi2osgZTLDZCRCDJrqNuQHSfMcYQ2ehlZMFwqt8w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wl1Oi2osgZTLDZCRCDJrqNuQHSfMcYQ2ehlZMFwqt8w/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Patient Name": "={{ $('If').item.json.data[\"Patient Name\"] }}",
+            "Doctor Name ": "={{ $('If').item.json.data[\"Doctor Name\"] }}",
+            "Date ": "={{ $('If').item.json.data.Date }}",
+            "Time": "={{ $('If').item.json.data.Time }}",
+            "Email": "={{ $('If').item.json.data.Email }}",
+            "Phone": "={{ $('If').item.json.data.Phone }}",
+            "Status": "={{ $('If').item.json.data.Status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Patient Name",
+              "displayName": "Patient Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor Name ",
+              "displayName": "Doctor Name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date ",
+              "displayName": "Date ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        -256
+      ],
+      "id": "bf3e65e9-2af2-426f-bd41-79f7ae0b9c3f",
+      "name": "Add Appointment information",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "o9bLisloVTLzcdf1",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('If').item.json.data.Email }}",
+        "subject": "Hello your appointment is booked",
+        "emailType": "text",
+        "message": "=hello {{ $('If').item.json.data[\"Patient Name\"] }} !\nYour Appointment is booked on \n{{ $('If').item.json.data.Date }} at {{ $('If').item.json.data.Time }}.\nPlease come on Time. \n              Thank You for trusting Mowassat Hospital.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        -304
+      ],
+      "id": "40deb39e-f279-4436-abba-da7d02eeb61c",
+      "name": "Send a message in Gmail",
+      "webhookId": "f3ef5b78-020c-447d-9d04-7b7a1c428539",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "egCNh8vlVGG3aK9t",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dd7cc983-7297-4e1a-9f21-befaf5f7a565",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "=booking_request",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        -320
+      ],
+      "id": "a97a4fec-f055-480c-9f82-111f98cd0f5e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message }}\n",
+        "options": {
+          "systemMessage": "=You are the Mowassat Hospital Action Agent.\nYour job is to process confirmed appointment JSON from the main assistant.\nYou have access to:\n\n\n\n**Google Sheet 2 (Add Appointments info– Append rows)**\n\n**Gmail (Send confirmation emails)**\n\nWhen you receive a valid appointment JSON:\n\nAppend it to the Appointments sheet.\n\nSend an email confirmation to the patient.\n\nReturn a text message confirming success.\n{{ $json.message }} as an output to the user.\n\nIf the input is not valid JSON, return a polite error message.\n\n💾 Tools connected:\n\n1.“Add Appointment Information” (Google Sheet Append)\n\n2.“Send a message in Gmail”"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        -528
+      ],
+      "id": "1260c2b7-7cc7-4633-a947-2f113065b53f",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        864,
+        -528
+      ],
+      "id": "0498c4b4-c760-47bd-b700-b52a48270db3",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -608,
+        -96
+      ],
+      "id": "46a60e35-58e9-4b26-91b5-8377f3ab275e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZMdlTeclXcLbGfiy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Safely clean and parse AI Agent output JSON\n\nlet raw = $json.output || $json.data || JSON.stringify($json);\n\ntry {\n  // Convert object to string if needed\n  if (typeof raw !== \"string\") raw = JSON.stringify(raw);\n\n  // Remove markdown code fences or unnecessary whitespace\n  raw = raw.replace(/```(json)?/g, \"\").trim();\n\n  // Parse and return clean JSON\n  return JSON.parse(raw);\n} catch (e) {\n  throw new Error(\"Invalid JSON from model: \" + raw);\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        -320
+      ],
+      "id": "1b5e8bdb-a123-45af-b652-f2a2dcf0e088",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        -32
+      ],
+      "id": "0e31be5e-7d28-46a2-bfe7-eb96199c3fc6",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "s38ACfNhkEMiGvyY",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "\"demo_user\""
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        -96
+      ],
+      "id": "40b52c9a-0aec-413f-95f7-0e7bab81df75",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "UKixk2vOE54TStvy",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=\"demo_user\""
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        -208
+      ],
+      "id": "f7778364-25c8-4e88-9f61-95ee37569654",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "UKixk2vOE54TStvy",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        -272
+      ],
+      "id": "df6c2f28-efaf-4658-be28-4b0f6bd23d02",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZMdlTeclXcLbGfiy",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "maddi321.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+            "content-length": "1159",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "103.120.70.63",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "PK",
+            "cf-ray": "9919a195004ef88a-SIN",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "https://mowasat-wellbeing-bot.vercel.app",
+            "priority": "u=1, i",
+            "referer": "https://mowasat-wellbeing-bot.vercel.app/",
+            "sec-ch-ua": "\"Not;A=Brand\";v=\"99\", \"Google Chrome\";v=\"139\", \"Chromium\";v=\"139\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Linux\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "103.120.70.63, 172.68.164.51",
+            "x-forwarded-host": "maddi321.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-78-74d8c5c9cc-klbdt",
+            "x-is-trusted": "yes",
+            "x-real-ip": "103.120.70.63"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "message": "ok thanku",
+            "conversationHistory": [
+              {
+                "role": "assistant",
+                "content": "Hello! I'm here to help you with hospital services, doctor availability, and appointment bookings. How can I assist you today?"
+              },
+              {
+                "role": "user",
+                "content": "hello i want to book appointment with cardiologist"
+              },
+              {
+                "role": "assistant",
+                "content": "Could you please provide me with the name of the Cardiologist you would like to book an appointment with?"
+              },
+              {
+                "role": "user",
+                "content": "which cardiologist is availbale and their timings"
+              },
+              {
+                "role": "assistant",
+                "content": "Dr. Hamza Malik, our Cardiologist, is available from Monday to Saturday between 9:00 AM and 1:00 PM."
+              },
+              {
+                "role": "user",
+                "content": "ok book appointment with him tomorrow at 10 am"
+              },
+              {
+                "role": "assistant",
+                "content": "Great, may I have your name, email, and phone number to complete the appointment booking?"
+              },
+              {
+                "role": "user",
+                "content": "my name is Ali email is drmadeehatassadaq@gmail.com phone is 03214897218"
+              },
+              {
+                "role": "assistant",
+                "content": "Thank you, Ali. Your booking with Dr. Hamza Malik for tomorrow at 10:00 AM is confirmed. You will receive the confirmation message shortly at your email address drmadeehatassadaq@gmail.com."
+              }
+            ]
+          },
+          "webhookUrl": "https://maddi321.app.n8n.cloud/webhook/211af792-2260-4dc4-b9f9-fac530145cfa",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Doctors schedule": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Appointment information": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "88e44bee-478e-40a5-a58d-ccb005a90805",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "394ae83c09b4fd80ac9f79dca56f403d2b9ec6cb6172ef3f71f5c143cbd25dec"
+  },
+  "id": "tad5FIJoYGgwb9BY",
+  "tags": []
+}
